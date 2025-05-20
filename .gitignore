@@ -1,0 +1,81 @@
+# Виртуальное окружение Python
+venv/
+env/
+ENV/
+.env
+
+# Кэш Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# Директории и файлы IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Файлы журналов и базы данных
+*.log
+*.sqlite3
+*.db
+
+# Alembic versions, если они не должны быть в репозитории
+# alembic/versions/*
+# !alembic/versions/.gitkeep
+
+# Файлы сборки и распространения
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Docker
+.dockerignore
+Dockerfile
+docker-compose.yml
+docker-compose.override.yml
+
+# Файлы для документации
+docs/_build/
+site/
+
+# Локальные конфигурационные файлы
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Миграции базы данных (может понадобиться включить в репозиторий)
+# migrations/
+
+# Другие специфичные для проекта файлы
+.coverage.*
+coverage.xml
+*.cover
+.hypothesis/
+.mypy_cache/
+.pytest_cache/
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
