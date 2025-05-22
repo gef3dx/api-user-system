@@ -10,7 +10,10 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 # Импортируем метаданные Base и настройки
 from app.core.config import settings
-from app.models import Base
+from app.core.database import Base
+
+# Импортируем все модели, чтобы они были зарегистрированы в метаданных
+from app.models.user import User, Profile
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -26,6 +29,7 @@ config.set_main_option("sqlalchemy.url", settings.DATABASE_URL)
 # add your model's MetaData object here
 # for 'autogenerate' support
 target_metadata = Base.metadata
+
 
 def run_migrations_offline():
     """Run migrations in 'offline' mode."""
@@ -50,9 +54,7 @@ def run_migrations_online():
     )
 
     with connectable.connect() as connection:
-        context.configure(
-            connection=connection, target_metadata=target_metadata
-        )
+        context.configure(connection=connection, target_metadata=target_metadata)
 
         with context.begin_transaction():
             context.run_migrations()
