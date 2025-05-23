@@ -2,7 +2,8 @@ import os
 from dotenv import load_dotenv
 from typing import Optional
 
-import psycopg2
+# Убираем импорт psycopg2, так как он не нужен для asyncpg
+# import psycopg2
 
 load_dotenv()
 
