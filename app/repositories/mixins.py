@@ -1,6 +1,6 @@
 from typing import Any, Dict, List, Optional, Type
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func, and_, or_
+from sqlalchemy import select, func, and_, or_, update, delete
 from sqlalchemy.orm import selectinload
 
 
