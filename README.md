@@ -117,6 +117,10 @@ project/
 ├── requirements.txt
 └── README.md
 ```
+## Запуск тестов
+```bash
+pytest tests/ -v --tb=short
+```
 
 ## API Endpoints
 
