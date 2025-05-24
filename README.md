@@ -10,6 +10,7 @@
 - **Alembic**: Система миграций для SQLAlchemy
 - **JWT**: Система аутентификации на основе токенов
 - **Pydantic**: Валидация данных и сериализация/десериализация
+- **Pytest**: Тестирование проекта
 
 ## Основные возможности
 
@@ -112,6 +113,16 @@ project/
 │   │   └── user.py
 │   ├── __init__.py
 │   └── main.py
+├── tests/
+│   ├── __init__.py
+│   ├── conftest.py
+│   ├── test_auth.py
+│   ├── test_edge_cases.py
+│   ├── test_integration.py
+│   ├── test_profiles.py
+│   ├── test_repositories.py
+│   ├── test_security.py
+│   └── test_users.py
 ├── .env
 ├── alembic.ini
 ├── requirements.txt
