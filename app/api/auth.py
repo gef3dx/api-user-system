@@ -1,10 +1,9 @@
-from datetime import timedelta
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 
 from app.core.dependencies import Deps
-from app.core.security import verify_password, create_access_token, get_password_hash
-from app.core.config import settings
+from app.core.security import get_current_user
+from app.models.user import User
 from app.schemas.token import Token
 from app.schemas.user import UserCreate, UserResponse
 
@@ -16,49 +15,104 @@ async def register_user(user_in: UserCreate, deps: Deps = Depends()):
     """
     Регистрация нового пользователя
     """
-    # Проверка существования пользователя с таким email
-    db_user = await deps.repos.users.get_by_email(deps.db, user_in.email)
-
-    if db_user:
+    try:
+        user = await deps.services.auth.register_user(deps.db, user_in)
+        return user
+    except HTTPException:
+        raise
+    except Exception as e:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Email уже зарегистрирован в системе",
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Ошибка при регистрации пользователя"
         )
-
-    # Создание пользователя с профилем
-    hashed_password = get_password_hash(user_in.password)
-    db_user = await deps.repos.users.create_user(deps.db, user_in, hashed_password)
-
-    return db_user
 
 
 @router.post("/login", response_model=Token)
 async def login_for_access_token(
-    form_data: OAuth2PasswordRequestForm = Depends(), deps: Deps = Depends()
+        form_data: OAuth2PasswordRequestForm = Depends(),
+        deps: Deps = Depends()
 ):
     """
     Авторизация пользователя и получение токена
     """
-    # Поиск пользователя по email
-    user = await deps.repos.users.get_by_email(deps.db, form_data.username)
-
-    # Проверка пароля и активности пользователя
-    if not user or not verify_password(form_data.password, user.hashed_password):
+    try:
+        token = await deps.services.auth.login_user(
+            deps.db, form_data.username, form_data.password
+        )
+        return token
+    except HTTPException:
+        raise
+    except Exception as e:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Неверный email или пароль",
-            headers={"WWW-Authenticate": "Bearer"},
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Ошибка при авторизации"
         )
 
-    if not user.is_active:
+
+@router.post("/refresh", response_model=Token)
+async def refresh_access_token(
+        current_user: User = Depends(get_current_user),
+        deps: Deps = Depends()
+):
+    """
+    Обновление токена доступа
+    """
+    try:
+        token = await deps.services.auth.refresh_token(deps.db, current_user)
+        return token
+    except HTTPException:
+        raise
+    except Exception as e:
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail="Учетная запись неактивна"
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Ошибка при обновлении токена"
         )
 
-    # Создание токена доступа
-    access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
-    access_token = create_access_token(
-        data={"sub": user.email, "user_id": user.id}, expires_delta=access_token_expires
-    )
 
-    return {"access_token": access_token, "token_type": "bearer"}
+@router.post("/logout")
+async def logout_user(
+        current_user: User = Depends(get_current_user),
+        deps: Deps = Depends()
+):
+    """
+    Выход пользователя из системы
+    """
+    try:
+        result = await deps.services.auth.logout_user(current_user)
+        return result
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Ошибка при выходе из системы"
+        )
+
+
+@router.post("/change-password")
+async def change_password(
+        old_password: str,
+        new_password: str,
+        current_user: User = Depends(get_current_user),
+        deps: Deps = Depends()
+):
+    """
+    Смена пароля пользователя
+    """
+    try:
+        success = await deps.services.auth.change_password(
+            deps.db, current_user, old_password, new_password
+        )
+
+        if success:
+            return {"message": "Пароль успешно изменен"}
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Не удалось изменить пароль"
+            )
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Ошибка при смене пароля"
+        )
